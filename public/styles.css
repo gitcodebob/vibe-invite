@@ -590,21 +590,37 @@ a:hover { text-decoration-thickness: 3px; }
   background: var(--darkblue);
 }
 .idea__art i { display: block; border-radius: .375rem; background: var(--darkblue-2); }
-.idea__art--rooster { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); }
-.idea__art--rooster i:nth-child(1), .idea__art--rooster i:nth-child(6) { background: var(--yellow); }
-.idea__art--rooster i:nth-child(3), .idea__art--rooster i:nth-child(8) { background: var(--coral); }
-.idea__art--rooster i:nth-child(4) { background: var(--soft); }
+/* Tutorial: een lesscherm met een uitgelicht onderdeel, daaronder de stappen en 'volgende'. */
+.idea__art--tutorial { grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr 1.25rem; }
+.idea__art--tutorial i { border-radius: 999px; }
+.idea__art--tutorial i:nth-child(1) { position: relative; grid-column: 1 / -1; border-radius: .5rem; }
+.idea__art--tutorial i:nth-child(1)::before,
+.idea__art--tutorial i:nth-child(1)::after { content: ''; position: absolute; border-radius: .25rem; }
+.idea__art--tutorial i:nth-child(1)::before { inset: .75rem auto auto .75rem; width: 45%; height: .5rem; background: var(--soft); }
+.idea__art--tutorial i:nth-child(1)::after { inset: auto .75rem .75rem auto; width: 3rem; height: 1.75rem; background: var(--yellow); outline: 2px solid var(--yellow); outline-offset: .25rem; }
+.idea__art--tutorial i:nth-child(2) { background: var(--soft); }
+.idea__art--tutorial i:nth-child(3) { background: var(--yellow); }
+.idea__art--tutorial i:nth-child(5) { background: var(--coral); }
 .idea__art--dashboard { grid-template-columns: repeat(4, 1fr); align-items: end; }
 .idea__art--dashboard i:nth-child(1) { height: 45%; background: var(--soft); }
 .idea__art--dashboard i:nth-child(2) { height: 75%; background: var(--coral); }
 .idea__art--dashboard i:nth-child(3) { height: 60%; background: var(--soft); }
 .idea__art--dashboard i:nth-child(4) { height: 100%; background: var(--yellow); }
-.idea__art--calc { grid-template-columns: repeat(3, 1fr); grid-template-rows: 1.4fr 1fr 1fr; }
-.idea__art--calc i:nth-child(1) { grid-column: 1 / -1; background: var(--line); }
-.idea__art--calc i { border-radius: 999px; }
-.idea__art--calc i:nth-child(1) { border-radius: .5rem; }
-.idea__art--calc i:nth-child(6) { background: var(--yellow); }
-.idea__art--calc i:nth-child(4) { background: var(--coral); }
+/* Teamscherm: een voortgangsring en drie horizontale targetbalken. Bewust anders dan de staafjes van de klantdemo. */
+.idea__art--teamscherm { grid-template-columns: 7.5rem minmax(0, 1fr); grid-template-rows: repeat(3, 1fr); align-items: center; column-gap: 1.25rem; }
+.idea__art--teamscherm i:nth-child(1) {
+  position: relative;
+  grid-row: 1 / -1;
+  width: 7.5rem;
+  height: 7.5rem;
+  border-radius: 50%;
+  background: conic-gradient(var(--yellow) 0 72%, var(--darkblue-2) 0);
+}
+.idea__art--teamscherm i:nth-child(1)::after { content: ''; position: absolute; inset: 1.5rem; border-radius: 50%; background: var(--darkblue); }
+.idea__art--teamscherm i:nth-child(n+2) { height: 1.25rem; border-radius: 999px; }
+.idea__art--teamscherm i:nth-child(2) { background: linear-gradient(90deg, var(--coral) 0 88%, var(--darkblue-2) 0); }
+.idea__art--teamscherm i:nth-child(3) { background: linear-gradient(90deg, var(--soft) 0 61%, var(--darkblue-2) 0); }
+.idea__art--teamscherm i:nth-child(4) { background: linear-gradient(90deg, var(--yellow) 0 34%, var(--darkblue-2) 0); }
 
 /* ---------- Stappen ---------- */
 .steps { list-style: none; padding: 0; display: grid; gap: 2.5rem; counter-reset: stap; }
