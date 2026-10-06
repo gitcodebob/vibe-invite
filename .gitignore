@@ -1,0 +1,6 @@
+node_modules/
+
+# Gegenereerd door release-scripting bij elke deploy, met poort en uid van deze server.
+Dockerfile
+.dockerignore
+compose.yaml
