@@ -8,6 +8,7 @@ const TYPES = {
   '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.svg': 'image/svg+xml',
+  '.png': 'image/png',
   '.woff2': 'font/woff2',
   '.txt': 'text/plain; charset=utf-8',
 };
@@ -54,7 +55,7 @@ function loadStatic(dir) {
         body,
         type: TYPES[ext] ?? 'application/octet-stream',
         etag: '"' + createHash('sha256').update(body).digest('base64url').slice(0, 16) + '"',
-        cache: ext === '.woff2' ? 'public, max-age=31536000, immutable' : 'no-cache',
+        cache: ext === '.woff2' ? 'public, max-age=31536000, immutable' : ext === '.png' ? 'public, max-age=86400' : 'no-cache',
       });
     }
   };

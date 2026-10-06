@@ -5,6 +5,7 @@ vragen tot het **Education Vibe Cluster**. Wie een geldige code invult, krijgt d
 codes om door te geven aan collega's. De beheerders regelen daarna de echte toegang.
 
 Live: https://vibe-invite.hetzner.bobreijnders.nl
+Preview van branch `aaa-kwaliteit`: https://vibe-invite-aaa.hetzner.bobreijnders.nl
 
 ## Opbouw
 
@@ -14,7 +15,11 @@ Live: https://vibe-invite.hetzner.bobreijnders.nl
 | `src/app.js` | routes, validatie, rate limiting, security-headers |
 | `src/store.js` | **stub** van de database: alles in het geheugen, weg na een herstart |
 | `src/codes.js` | codes maken en normaliseren (`VIBE-XXXX-XXXX`, zonder 0/O/1/I/L) |
-| `public/` | de pagina zelf: HTML, CSS, JS, Montserrat, favicon |
+| `public/` | de pagina zelf: HTML, CSS, Montserrat, favicon |
+| `public/app.js` | formulier, tickets, kopiëren, mailen en delen |
+| `public/motion.js` | scroll-animaties, de demo (prompt → live) en confetti; alles uit bij `prefers-reduced-motion` |
+| `public/js-flag.js` | zet vóór de eerste paint `html.js`, zodat inhoud zonder JavaScript nooit verborgen blijft |
+| `design/og.html` | bron van `public/og.png`, de preview bij gedeelde links (1200×630) |
 | `test/` | `npm test` (node:test) |
 
 ### API
@@ -52,7 +57,19 @@ run_app(project_dir="/home/botrey/projects/vibe-invite", app="vibe-invite", kind
 ```
 
 Verifiëren: `curl -fsS https://vibe-invite.hetzner.bobreijnders.nl/ | diff - public/index.html`
-(en idem voor `/styles.css` en `/app.js`).
+(en idem voor `/styles.css`, `/app.js` en `/motion.js`).
+
+Een branch als preview, vanuit een eigen worktree zodat `main` ongemoeid blijft:
+
+```
+run_app(project_dir="/home/botrey/projects/vibe-invite-aaa", app="vibe-invite-aaa", kind="node", rebuild=true)
+```
+
+### Preview-afbeelding opnieuw maken
+
+Open `design/og.html` in een headless browser met een viewport van 1200×630 en sla een
+screenshot op als `public/og.png`. De `og:image` in `index.html` wijst naar het hoofddomein, dus
+de nieuwe afbeelding is pas zichtbaar in Teams/Slack nadat `main` is uitgerold.
 
 ## Toegankelijkheid
 
@@ -60,3 +77,7 @@ Doel is WCAG 2.2 niveau AAA: contrast ≥ 7:1, focus altijd zichtbaar (3px), kli
 foutoverzicht met links naar de velden, statusmeldingen via `role="status"`, begrippenlijst voor
 ongewone woorden, geen tijdslimieten, reflow tot 320px en respect voor `prefers-reduced-motion`
 en `forced-colors`.
+
+Beweging: niets beweegt langer dan 5 seconden (WCAG 2.2.2), de demo is opnieuw af te spelen, en
+met "minder beweging" aan staat alles direct in de eindtoestand. Decoratie blijft binnen de rand
+van de hero en de gloed onder 12% dekking, zodat de tekst erboven 7:1 houdt.
