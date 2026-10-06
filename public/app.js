@@ -1,6 +1,10 @@
+import { celebrate } from './motion.js';
+
 const FIELDS = ['code', 'name', 'email'];
 const BASE_TITLE = document.title;
+const INVITE_SUBJECT = 'Uitnodiging voor het Education Vibe Cluster';
 
+const card = document.getElementById('aanmelden');
 const form = document.getElementById('redeem-form');
 const submit = document.getElementById('submit');
 const summary = document.getElementById('foutmeldingen');
@@ -12,8 +16,10 @@ const resultTitle = document.getElementById('resultaat-titel');
 const resultText = document.getElementById('resultaat-tekst');
 const inviteList = document.getElementById('invites');
 const inviteTemplate = document.getElementById('invite-template');
+const copyAll = document.getElementById('kopieer-alles');
 
 let busy = false;
+let currentInvites = [];
 
 // aria-describedby zoals in de HTML staat, zodat we de foutmelding er netjes voor kunnen zetten.
 const baseDescribedBy = Object.fromEntries(
@@ -69,32 +75,42 @@ function showErrors(errors) {
   summary.focus();
 }
 
-function mailtoFor(code, name) {
-  const subject = 'Uitnodiging voor het Education Vibe Cluster';
-  const body = [
+function invitationText(code, name) {
+  return [
     'Hoi,',
     '',
-    'Ik denk dat jij hier iets aan hebt. Met het Education Vibe Cluster zet je ieder idee live met één prompt.',
+    'Ik denk dat jij hier iets aan hebt. Met het Education Vibe Cluster zet je een idee live met één prompt,',
+    'en deel je het meteen met collega’s of een klant.',
     '',
     `Jouw invitecode: ${code}`,
-    `Vul hem in op ${location.origin}/`,
+    `Activeer hem op ${location.origin}/`,
     '',
-    'De code werkt één keer.',
+    'De code werkt één keer, dus hij is echt voor jou.',
     '',
     'Groet,',
     name,
   ].join('\n');
-  return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
+const mailtoFor = (code, name) =>
+  `mailto:?subject=${encodeURIComponent(INVITE_SUBJECT)}&body=${encodeURIComponent(invitationText(code, name))}`;
+
 function renderInvites(invites, name) {
+  const canShare = typeof navigator.share === 'function';
   inviteList.replaceChildren(
-    ...invites.map((code) => {
+    ...invites.map((code, i) => {
       const item = inviteTemplate.content.firstElementChild.cloneNode(true);
-      item.querySelector('.invite__code').textContent = code;
+      item.classList.add('is-new');
+      item.style.setProperty('--i', i);
+      item.querySelector('[data-n]').textContent = i + 1;
+      item.querySelector('.ticket__code').textContent = code;
       for (const label of item.querySelectorAll('[data-code-label]')) label.textContent = ` code ${code}`;
       item.querySelector('[data-action="mail"]').href = mailtoFor(code, name);
       item.querySelector('[data-action="copy"]').dataset.code = code;
+      const share = item.querySelector('[data-action="share"]');
+      share.hidden = !canShare;
+      share.dataset.code = code;
+      share.dataset.name = name;
       return item;
     }),
   );
@@ -103,23 +119,27 @@ function renderInvites(invites, name) {
 function showResult(data, name) {
   const email = data.email;
   if (data.status === 'redeemed') {
-    resultTitle.textContent = 'Gelukt! Je code is geactiveerd';
+    resultTitle.textContent = 'Welkom bij het Education Vibe Cluster';
     resultText.textContent =
-      `De beheerders zetten je toegang klaar. Je krijgt een e-mail op ${email} zodra je aan de slag kunt.`;
+      `Je code is geactiveerd. De beheerders zetten je toegang klaar. Je krijgt een e-mail op ${email} ` +
+      'zodra je aan de slag kunt.';
   } else if (data.sameCode) {
     resultTitle.textContent = 'Je code was al geactiveerd';
-    resultText.textContent = 'Je toegang is al aangevraagd. Hieronder staan je drie invitecodes nog een keer.';
+    resultText.textContent = 'Je toegang is al aangevraagd. Hieronder staan je drie uitnodigingen nog een keer.';
   } else {
     resultTitle.textContent = 'Je hebt al toegang aangevraagd';
     resultText.textContent =
       `Met ${email} heb je eerder al een code gebruikt. De code ${data.code} is daarom niet gebruikt: ` +
-      'geef hem aan een andere collega. Hieronder staan je eigen drie invitecodes.';
+      'geef hem aan een andere collega. Hieronder staan je eigen drie uitnodigingen.';
   }
+  currentInvites = data.invites;
   renderInvites(data.invites, name);
+  resetCopied();
   document.title = `${resultTitle.textContent} – Education Vibe Cluster – Topicus`;
   formSection.hidden = true;
   resultSection.hidden = false;
   resultTitle.focus();
+  if (data.status === 'redeemed') celebrate(card);
 }
 
 form.addEventListener('submit', async (event) => {
@@ -149,34 +169,71 @@ form.addEventListener('submit', async (event) => {
   }
 });
 
-inviteList.addEventListener('click', async (event) => {
-  const button = event.target.closest('[data-action="copy"]');
-  if (!button) return;
-  const code = button.dataset.code;
-
-  for (const other of inviteList.querySelectorAll('[data-copied]')) {
-    delete other.dataset.copied;
-    other.querySelector('[data-label]').textContent = 'Kopieer';
+// ---------- Kopiëren en delen ----------
+function resetCopied() {
+  for (const button of resultSection.querySelectorAll('[data-copied]')) {
+    delete button.dataset.copied;
+    button.querySelector('[data-label]').textContent = button === copyAll ? 'Kopieer alle drie' : 'Kopieer';
   }
+}
+
+function selectText(element) {
+  const range = document.createRange();
+  range.selectNodeContents(element);
+  getSelection().removeAllRanges();
+  getSelection().addRange(range);
+}
+
+async function copy(button, text, { done, success, fallbackTarget }) {
+  resetCopied();
   try {
-    await navigator.clipboard.writeText(code);
+    await navigator.clipboard.writeText(text);
     button.dataset.copied = '';
-    button.querySelector('[data-label]').textContent = 'Gekopieerd';
-    status.textContent = `Code ${code} is gekopieerd.`;
+    button.querySelector('[data-label]').textContent = done;
+    status.textContent = success;
   } catch {
-    // Geen klembord (oude browser, geen toestemming): selecteer de code, dan kan het met Ctrl+C.
-    const range = document.createRange();
-    range.selectNodeContents(button.closest('.invite').querySelector('.invite__code'));
-    getSelection().removeAllRanges();
-    getSelection().addRange(range);
-    status.textContent = `Kopiëren lukte niet. Code ${code} is geselecteerd: kopieer hem met Ctrl+C.`;
+    // Geen klembord (oude browser, geen toestemming): selecteer de tekst, dan kan het met Ctrl+C.
+    selectText(fallbackTarget);
+    status.textContent = 'Kopiëren lukte niet. De tekst is geselecteerd: kopieer hem met Ctrl+C.';
+  }
+}
+
+inviteList.addEventListener('click', async (event) => {
+  const copyButton = event.target.closest('[data-action="copy"]');
+  if (copyButton) {
+    const code = copyButton.dataset.code;
+    await copy(copyButton, code, {
+      done: 'Gekopieerd',
+      success: `Code ${code} is gekopieerd.`,
+      fallbackTarget: copyButton.closest('.ticket').querySelector('.ticket__code'),
+    });
+    return;
+  }
+
+  const shareButton = event.target.closest('[data-action="share"]');
+  if (shareButton) {
+    const { code, name } = shareButton.dataset;
+    try {
+      await navigator.share({ title: INVITE_SUBJECT, text: invitationText(code, name) });
+    } catch {
+      // Delen geannuleerd of niet toegestaan: niets aan de hand, de andere knoppen werken nog.
+    }
   }
 });
+
+copyAll.addEventListener('click', () =>
+  copy(copyAll, currentInvites.join('\n'), {
+    done: 'Alle drie gekopieerd',
+    success: 'Alle drie de codes zijn gekopieerd.',
+    fallbackTarget: inviteList,
+  }),
+);
 
 document.getElementById('opnieuw').addEventListener('click', () => {
   form.reset();
   clearErrors();
   inviteList.replaceChildren();
+  currentInvites = [];
   status.textContent = '';
   resultSection.hidden = true;
   formSection.hidden = false;

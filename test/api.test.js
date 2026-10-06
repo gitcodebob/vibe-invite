@@ -30,7 +30,7 @@ test('de pagina en de bestanden worden geserveerd met security-headers', async (
   assert.match(res.headers.get('content-type'), /text\/html/);
   assert.match(res.headers.get('content-security-policy'), /script-src 'self'/);
   assert.match(await res.text(), /lang="nl"/);
-  for (const path of ['/styles.css', '/app.js', '/favicon.svg', '/fonts/montserrat-latin.woff2']) {
+  for (const path of ['/styles.css', '/app.js', '/motion.js', '/js-flag.js', '/favicon.svg', '/og.png', '/fonts/montserrat-latin.woff2']) {
     assert.equal((await fetch(`${base}${path}`)).status, 200, path);
   }
   assert.equal((await fetch(`${base}/../server.js`)).status, 404);
