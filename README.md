@@ -5,7 +5,6 @@ vragen tot het **Education Vibe Cluster**. Wie een geldige code invult, krijgt d
 codes om door te geven aan collega's. De beheerders regelen daarna de echte toegang.
 
 Live: https://vibe-invite.hetzner.bobreijnders.nl
-Preview van branch `aaa-kwaliteit`: https://vibe-invite-aaa.hetzner.bobreijnders.nl
 
 ## Opbouw
 
@@ -59,11 +58,17 @@ run_app(project_dir="/home/botrey/projects/vibe-invite", app="vibe-invite", kind
 Verifiëren: `curl -fsS https://vibe-invite.hetzner.bobreijnders.nl/ | diff - public/index.html`
 (en idem voor `/styles.css`, `/app.js` en `/motion.js`).
 
-Een branch als preview, vanuit een eigen worktree zodat `main` ongemoeid blijft:
+Een branch als preview, vanuit een eigen worktree zodat `main` en de live site ongemoeid blijven:
 
+```bash
+git worktree add -b <branch> ../vibe-invite-<naam>
 ```
-run_app(project_dir="/home/botrey/projects/vibe-invite-aaa", app="vibe-invite-aaa", kind="node", rebuild=true)
 ```
+run_app(project_dir="/home/botrey/projects/vibe-invite-<naam>", app="vibe-invite-<naam>", kind="node", rebuild=true)
+```
+
+Na de merge: `stop_app(app="vibe-invite-<naam>", project_dir=...)`, dan `git worktree remove` en de
+branch weg.
 
 ### Preview-afbeelding opnieuw maken
 
