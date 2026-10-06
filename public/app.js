@@ -122,7 +122,7 @@ function showResult(data, name) {
     resultTitle.textContent = 'Welkom bij het Education Vibe Cluster';
     resultText.textContent =
       `Je code is geactiveerd. De beheerders zetten je toegang klaar. Je krijgt een e-mail op ${email} ` +
-      'zodra je aan de slag kunt.';
+      'of een Slack-bericht zodra je aan de slag kunt.';
   } else if (data.sameCode) {
     resultTitle.textContent = 'Je code was al geactiveerd';
     resultText.textContent = 'Je toegang is al aangevraagd. Hieronder staan je drie uitnodigingen nog een keer.';
